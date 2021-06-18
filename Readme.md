@@ -1,0 +1,2 @@
+# Assumptions
+* Currency is £.
