@@ -19,7 +19,6 @@ public class OrderBookMap {
     }
 
     public OrderBook getOrderBook(String symbol) {
-        //TODO-check if the 2 occurence of symbol could be optimised.
         map.putIfAbsent(symbol, new OrderBook(symbol));
         return map.get(symbol);
     }
