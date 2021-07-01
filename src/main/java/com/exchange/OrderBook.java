@@ -82,8 +82,6 @@ public class OrderBook {
     }
 
     public void performMatch() {
-        ConcurrentSkipListMap<OrderEntry, UUID> askMap = getAskMap();
-        ConcurrentSkipListMap<OrderEntry, UUID> bidMap = getBidMap();
         for (Map.Entry<OrderEntry, UUID> askOrderEntry : askMap.entrySet()) {
             Order askOrder = askOrderEntry.getKey().getOrder();
             for (Map.Entry<OrderEntry, UUID> bidOrderEntry : bidMap.entrySet().stream().filter(map -> map.getKey().getPrice() == askOrder.getPrice() &&   map.getKey().getOrder().getQuantity() == askOrder.getQuantity()).collect(Collectors.toMap(map-> map.getKey(),map -> map.getValue())).entrySet()) {
