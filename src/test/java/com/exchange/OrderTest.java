@@ -8,6 +8,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class OrderTest {
@@ -38,7 +42,7 @@ public class OrderTest {
         Long currentTimeStamp = getCurrentTimeStamp();
         OrderEntry orderEntry = new OrderEntry(order, currentTimeStamp);
         orderHandler.addOrder(symbol, orderEntry);
-        orderBook= ((OrderBookHandler) orderHandler).getOrderBook(symbol);
+        orderBook = ((OrderBookHandler) orderHandler).getOrderBook(symbol);
         assertTrue(orderBook.getBidMap().containsKey(orderEntry));
     }
 
@@ -53,7 +57,7 @@ public class OrderTest {
         OrderEntry orderEntryBid = new OrderEntry(orderBid, currentTimeStampBid);
         orderHandler.addOrder(symbol, orderEntryAsk);
         orderHandler.addOrder(symbol, orderEntryBid);
-        orderBook= ((OrderBookHandler) orderHandler).getOrderBook(symbol);
+        orderBook = ((OrderBookHandler) orderHandler).getOrderBook(symbol);
         assertTrue(orderBook.getAskMap().containsKey(orderEntryAsk));
         assertTrue(orderBook.getBidMap().containsKey(orderEntryBid));
     }
@@ -81,7 +85,7 @@ public class OrderTest {
         orderHandler.addOrder(symbol, orderEntryAsk3);
         orderHandler.addOrder(symbol, orderEntryAsk4);
         orderHandler.addOrder(symbol, orderEntryAsk5);
-        assertEquals(((OrderBookHandler) orderHandler).getPrice(symbol, 17, Side.SELL), 28.58823529411765);
+        assertEquals(orderHandler.getPrice(symbol, 17, Side.SELL), 28.58823529411765);
     }
 
     @Test
@@ -95,7 +99,7 @@ public class OrderTest {
         OrderEntry orderEntryBid2 = new OrderEntry(orderBid2, currentTimeStampBid2);
         orderHandler.addOrder(symbol, orderEntryBid1);
         orderHandler.addOrder(symbol, orderEntryBid2);
-        assertEquals(((OrderBookHandler) orderHandler).getPrice(symbol, 2, Side.BUY), 13);
+        assertEquals(orderHandler.getPrice(symbol, 2, Side.BUY), 13);
     }
 
     @Test
@@ -109,7 +113,7 @@ public class OrderTest {
         OrderEntry orderEntryBid = new OrderEntry(orderBid, currentTimeStampBid);
         orderHandler.addOrder(symbol, orderEntryAsk);
         orderHandler.addOrder(symbol, orderEntryBid);
-        orderBook= ((OrderBookHandler) orderHandler).getOrderBook(symbol);
+        orderBook = ((OrderBookHandler) orderHandler).getOrderBook(symbol);
         orderBook.performMatch();
         assertFalse(orderBook.getAskMap().containsKey(orderEntryAsk));
         assertFalse(orderBook.getBidMap().containsKey(orderEntryBid));
@@ -131,7 +135,7 @@ public class OrderTest {
         orderHandler.addOrder(symbol, orderEntryAsk);
         orderHandler.addOrder(symbol, orderEntryBid);
         orderHandler.modifyOrder(symbol, orderEntryBid, newOrderEntryBid, Side.BUY);
-        orderBook= ((OrderBookHandler) orderHandler).getOrderBook(symbol);
+        orderBook = ((OrderBookHandler) orderHandler).getOrderBook(symbol);
         assertFalse(orderBook.getBidMap().containsKey(orderEntryBid));
         assertTrue(orderBook.getBidMap().containsKey(newOrderEntryBid));
         orderBook.performMatch();
@@ -161,13 +165,29 @@ public class OrderTest {
         orderEntryBid2.getOrder().setPrice(18);
         orderHandler.modifyOrder(symbol, orderEntryBid2, orderEntryBid3, Side.BUY);
         orderHandler.removeOrder(symbol, orderEntryBid3, Side.BUY);
-        orderBook= ((OrderBookHandler) orderHandler).getOrderBook(symbol);
+        orderBook = ((OrderBookHandler) orderHandler).getOrderBook(symbol);
         assertTrue(orderBook.getBidMap().containsKey(orderEntryBid3));
         OrderEntry orderEntryBid4 = new OrderEntry(orderEntryBid3, 4);
         orderEntryBid2.getOrder().setPrice(19);
         orderHandler.modifyOrder(symbol, orderEntryBid3, orderEntryBid4, Side.BUY);
         orderHandler.removeOrder(symbol, orderEntryBid4, Side.BUY);
         assertFalse(orderBook.getBidMap().containsKey(orderEntryBid4));
+    }
+
+
+    @Test
+    void loadTest() throws InterruptedException {
+//        load(new OrderHandlerThread(), 100, 100);
+    }
+
+    private void load(Runnable runnable, int threadCount, int timeOut) throws InterruptedException {
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        for (int i = 0; i < 100; i++) {
+            IntStream.range(0, threadCount).forEach(j -> executor.submit(runnable));
+            Thread.sleep(10);
+        }
+        executor.shutdown();
+//            executor.awaitTermination(timeOut, TimeUnit.SECONDS);
     }
 
     private Long getCurrentTimeStamp() {

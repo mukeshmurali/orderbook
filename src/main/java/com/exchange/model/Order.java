@@ -14,7 +14,7 @@ public class Order {
         this.symbol = symbol;
         this.quantity = quantity;
         this.price = price;
-        this.orderId = UUID.randomUUID();
+        this.orderId = new UUID(System.nanoTime(),System.nanoTime());
     }
 
     public UUID getOrderId() {
